@@ -35,7 +35,7 @@
     <!-- データが取得できたときにdl要素を表示する -->
     <label
       >地域：
-      <select>
+      <select v-model="area">
         <option value="130">東京</option>
         <option value="270">大阪</option>
       </select>
@@ -43,23 +43,23 @@
 
     <label
       >チャンネル：
-      <select>
+      <select v-model="service">
         <option value="g1">NHK 総合1</option>
         <option value="s1">NHK BS1</option>
         <option value="r3">NHK FM</option>
       </select>
     </label>
 
-    <table>
+    <table v-if="list">
       <tr>
         <th>時刻</th>
         <th>タイトル</th>
         <th>内容</th>
       </tr>
-      <tr>
-        <td></td>
-        <td></td>
-        <td></td>
+      <tr v-for="{data,index} in list">
+        <td>[{{time(index)}}</td>
+        <td>{{data.title}}</td>
+        <td>{{data.content}}</td>
       </tr>
     </table>
   </body>
@@ -69,9 +69,33 @@
       return {
         // 変数（プロパティ）
         list: false,
-        apikey: '' // 自分で取得する
+        apikey: 'vBymsh9mdJzQz8zFMNtg8I0RCekvWOwe', // 自分で取得する
+        area: '130',
+        service: 'g1',
 
         // 関数（メソッド）
+        async getProgramList() {
+          const date = 20251003;
+          const url = `http://api.nhk.or.jp/v2/pg/list/${this.area}/${this.service}/${date}.json`;
+
+          const query = new URLSearchParams({
+            key: this.apikey
+          });
+
+          const res = await fetch(url + '?' + query);
+
+          if (res.ok) {
+            const data = await res.json();
+            this.list = data.list[this.service];
+          } else {
+            console.error(`${res.status} : ${res.statusText}`);
+          }
+        },
+        time(index) {
+          const Stime = this.list[index].start_time.split('T');
+          const utc = Stime[1].split(':');
+          return utc[0] + ':' + utc[1];
+        }
       };
     }
   </script>
